@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Will You Be My Girlfriend?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sacramento&family=Poppins:wght@300;600&display=swap');
+
+  /* Reset and base */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f8cdda, #1e3c72);
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .container {
+    background: rgba(255 255 255 / 0.1);
+    border-radius: 20px;
+    padding: 30px 25px 40px;
+    max-width: 350px;
+    width: 100%;
+    box-shadow: 0 15px 25px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 400px;
+    position: relative;
+    z-index: 10;
+  }
+  h1 {
+    font-family: 'Sacramento', cursive;
+    font-size: 3.8rem;
+    margin-bottom: 0.4em;
+    color: #ff3366;
+    line-height: 1.1;
+    user-select: none;
+  }
+  p {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 2em;
+    color: #ffd6e8;
+    user-select: none;
+  }
+  button {
+    background: #ff3366;
+    color: white;
+    font-weight: 700;
+    font-size: 1.4rem;
+    padding: 15px 0;
+    width: 100%;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 51, 102, 0.7);
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  button:hover,
+  button:focus {
+    background: #e52952;
+    outline: none;
+  }
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  #responseMessage {
+    font-size: 2rem;
+    color: #ffb3c6;
+    margin-top: 1.5em;
+    font-family: 'Sacramento', cursive;
+  }
+
+  /* Fireworks container */
+  #fireworks {
+    pointer-events: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: visible;
+    z-index: 5;
+  }
+
+  /* Firework particle */
+  .firework-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #ff3366;
+    border-radius: 50%;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 3px #ff3366);
+    animation: particle-move 700ms forwards;
+  }
+
+  /* Particle colors variations */
+  .color1 { background: #ff3366; filter: drop-shadow(0 0 6px #ff3366);}
+  .color2 { background: #ff66aa; filter: drop-shadow(0 0 6px #ff66aa);}
+  .color3 { background: #ff99cc; filter: drop-shadow(0 0 6px #ff99cc);}
+  .color4 { background: #ff2e8a; filter: drop-shadow(0 0 6px #ff2e8a);}
+  .color5 { background: #ffa3b1; filter: drop-shadow(0 0 6px #ffa3b1);}
+  
+  @keyframes particle-move {
+    0% {
+      opacity: 0.9;
+      transform: translate(0,0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--dx), var(--dy)) scale(0.4);
+    }
+  }
+
+  /* Floating heart emojis container */
+  #floatingHearts {
+    pointer-events: none;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: visible;
+    z-index: 6;
+  }
+
+  .floating-heart {
+    position: absolute;
+    font-size: 28px;
+    opacity: 0;
+    animation: floatUp 4000ms ease-out forwards;
+    user-select: none;
+    filter: drop-shadow(0 0 3px #ff6699);
+  }
+
+  @keyframes floatUp {
+    0% {
+      transform: translateY(0) scale(0.6);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-150px) scale(1);
+      opacity: 0;
+    }
+  }
+
+  /* Responsive text adjustment */
+  @media (max-width: 350px) {
+    h1 {
+      font-size: 3rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Love question to Somontra">
+    <h1>Will you be my<br>girlfriend<br>Borey?</h1>
+    <p>If yes, please tap below 💖</p>
+    <button id="yesBtn" aria-label="Yes, I will be your girlfriend">Yes ❤️</button>
+    <div id="responseMessage" aria-live="polite" role="region"></div>
+  </main>
+
+  <div id="fireworks" aria-hidden="true"></div>
+  <div id="floatingHearts" aria-hidden="true"></div>
+
+<script>
+  const yesBtn = document.getElementById('yesBtn');
+  const responseMessage = document.getElementById('responseMessage');
+  const fireworksContainer = document.getElementById('fireworks');
+  const floatingHeartsContainer = document.getElementById('floatingHearts');
+
+  function createFireworkParticle(x, y, angle, distance, colorClass) {
+    const particle = document.createElement('div');
+    particle.classList.add('firework-particle', colorClass);
+    particle.style.left = x + 'px';
+    particle.style.top = y + 'px';
+    // Calculate dx and dy transforms based on angle and distance
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance;
+    particle.style.setProperty('--dx', dx + 'px');
+    particle.style.setProperty('--dy', dy + 'px');
+
+    fireworksContainer.appendChild(particle);
+
+    setTimeout(() => {
+      fireworksContainer.removeChild(particle);
+    }, 700);
+  }
+
+  // Fireworks animation burst from point
+  function burstFireworks(x, y) {
+    const colors = ['color1', 'color2', 'color3', 'color4', 'color5'];
+    const numParticles = 20;
+    for (let i = 0; i < numParticles; i++) {
+      const angle = (Math.PI * 2 / numParticles) * i;
+      const distance = 60 + Math.random() * 40;
+      const colorClass = colors[i % colors.length];
+      createFireworkParticle(x, y, angle, distance, colorClass);
+    }
+  }
+
+  function createFloatingHeart() {
+    const heartEmoji = ['❤️','💖','💕','💘','💓','💞'][Math.floor(Math.random()*6)];
+    const heart = document.createElement('div');
+    heart.textContent = heartEmoji;
+    heart.classList.add('floating-heart');
+    heart.style.left = (Math.random() * window.innerWidth) + 'px';
+    heart.style.bottom = '-40px';
+    heart.style.fontSize = (16 + Math.random()*20) + 'px';
+    heart.style.animationDuration = (3000 + Math.random()*2000) + 'ms';
+
+    floatingHeartsContainer.appendChild(heart);
+
+    heart.addEventListener('animationend', () => {
+      floatingHeartsContainer.removeChild(heart);
+    });
+  }
+
+  function startFloatingHearts() {
+    const floatingInterval = setInterval(() => {
+      createFloatingHeart();
+    }, 350);
+
+    // Stop floating hearts after 12s to avoid excess
+    setTimeout(() => {
+      clearInterval(floatingInterval);
+    }, 12000);
+  }
+
+  yesBtn.addEventListener('click', () => {
+    yesBtn.disabled = true;
+    yesBtn.style.cursor = 'default';
+
+    // Show thank you message
+    responseMessage.textContent = 'Yay! ❤️ Thank you, Borey! I\'m so happy!';
+
+    // Fireworks burst at center of button
+    const rect = yesBtn.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    burstFireworks(centerX, centerY);
+
+    // Start floating hearts animation
+    startFloatingHearts();
+  });
+</script>
+</body>
+</html>
